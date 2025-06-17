@@ -1,16 +1,6 @@
 ﻿#include <iostream>
 #include <string>
 
-// Режим работы программы
-enum Mode
-{
-    ENCRYPT = 1,
-    DECRYPT = 2
-};
-
-// Определение прототипов функций
-bool isNumber(const std::string&); 
-Mode getModeFromUser();
 
 int main(int argc, char* argv[])
 {
@@ -21,27 +11,32 @@ int main(int argc, char* argv[])
     system("cls");
 
     // Проверка, что аргументов достаточно для шифрования/расшифрования
-    if (argc == 4)
+    if (argc == 5)
     {
         // Определение переменных
         std::string input_file_name = argv[1]; // Имя файла, в котором содержится текст для шифрования/расшифрования
         std::string output_file_name = argv[2]; // Имя файла, в который поместится зашифрованный/расшифрованный текст
         std::string key = argv[3]; // Ключ для шифрования/расшифрования
-
-        // Режим работы программы
-        Mode mode = getModeFromUser();
+        std::string mode = argv[4]; // Режим работы программы
 
         // Режим шифрования
-        if (mode == Mode::ENCRYPT)
+        // en - шифрование
+        // de - дешифрование
+        if (!mode.compare("en"))
         {
             // Вызов функции шифрования
             std::cout << std::endl << "Вызов функции шифрования..." << std::endl;
         }
         // Режим расшифрования
-        else if (mode == Mode::DECRYPT)
+        else if (!mode.compare("de"))
         {
             // Вызов функции расшифрования
             std::cout << std::endl << "Вызов функции расшифрования..." << std::endl;
+        }
+        else
+        {
+            // Вызов функции справки
+            std::cout << std::endl << "Выбран некорретный режим работы (en/de)..." << std::endl;
         }
     }
     // Проверка, что аргументов достаточно для дешифрации
@@ -60,46 +55,4 @@ int main(int argc, char* argv[])
         // Вызов функции справки
         std::cout << std::endl << "Вызов функции справки..." << std::endl;
     }
-}
-
-// Проверка, что строку можно преобразовать в число
-bool isNumber(const std::string& s)
-{
-    // Проверка, что строка пустая
-    if (s.empty())
-        return false;
-
-    // Проверка, что все символы являются цифрами
-    for (int i = 0; i < s.length(); i++)
-        if (!isdigit(s[i]))
-            return false;
-
-    return true;
-}
-
-// Получение режима работы программы от пользователя
-Mode getModeFromUser()
-{
-    std::string input;
-    int mode;
-
-    do {
-        std::cout << "Выберите режим работы:\n"
-            << "1 - шифрование\n"
-            << "2 - расшифрование\n"
-            << "Введите режим работы: ";
-        std::cin >> input;
-
-        if (!isNumber(input)) {
-            std::cout << "Ошибка: введите число\n";
-            continue;
-        }
-
-        mode = std::stoi(input);
-        if (mode < 1 || mode > 2) {
-            std::cout << "Ошибка: число должно быть 1 или 2\n";
-        }
-    } while (mode < 1 || mode > 2);
-
-    return static_cast<Mode>(mode);
 }
