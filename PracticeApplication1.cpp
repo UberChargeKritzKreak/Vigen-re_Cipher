@@ -1,6 +1,63 @@
-﻿#include <iostream>
+#include <iostream>
 #include <string>
 #include <cctype>
+
+std::string vigenere_encrypt(const std::string&, const std::string&);
+ 
+int main(int argc, char* argv[])
+{
+    setlocale(LC_ALL, "Russian"); // Подключение русской локали
+    
+    // Переключение кодировки в консоли на Windows-1251
+    system("chcp 1251");
+    system("cls");
+
+    // Проверка, что аргументов достаточно для шифрования/расшифрования
+    if (argc == 5)
+    {
+        // Определение переменных
+        std::string input_file_name = argv[1]; // Имя файла, в котором содержится текст для шифрования/расшифрования
+        std::string output_file_name = argv[2]; // Имя файла, в который поместится зашифрованный/расшифрованный текст
+        std::string key = argv[3]; // Ключ для шифрования/расшифрования
+        std::string mode = argv[4]; // Режим работы программы
+
+        // Режим шифрования
+        // en - шифрование
+        // de - дешифрование
+        if (!mode.compare("en"))
+        {
+            // Вызов функции шифрования
+            std::cout << std::endl << "Вызов функции шифрования..." << std::endl;
+        }
+        // Режим расшифрования
+        else if (!mode.compare("de"))
+        {
+            // Вызов функции расшифрования
+            std::cout << std::endl << "Вызов функции расшифрования..." << std::endl;
+        }
+        else
+        {
+            // Вызов функции справки
+            std::cout << std::endl << "Выбран некорретный режим работы (en/de)..." << std::endl;
+        }
+    }
+    // Проверка, что аргументов достаточно для дешифрации
+    else if (argc == 3)
+    {
+        // Определение переменных
+        std::string input_file_name = argv[1]; // Имя файла, в котором содержится зашифрованный текст
+        std::string output_file_name = argv[2]; // Имя файла, в который поместится дешифрованный текст
+
+        // Вызов функции дешифрования
+        std::cout << std::endl << "Вызов функции дешифрования..." << std::endl;
+    }
+    // Аргументов недостаточно или избыточно для работы программы
+    else
+    {
+        // Вызов функции справки
+        std::cout << std::endl << "Вызов функции справки..." << std::endl;
+    }
+}
 
 std::string vigenere_encrypt(const std::string& text, const std::string& key) {
     // Русский алфавит (33 буквы)
@@ -52,11 +109,4 @@ std::string vigenere_encrypt(const std::string& text, const std::string& key) {
     }
 
     return result;
-}
-
-int main()
-{
-    setlocale(LC_ALL, "ru");
-
-    std::cout << vigenere_encrypt("Привет Пока!", "нет");
 }
