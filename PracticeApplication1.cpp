@@ -2,18 +2,15 @@
 #include <string>
 #include <cctype>
 
-std::string vienere_encrypt(const std::string text, const std::string key)
-{
-    // Русский алфавит (строчные буквы)
-    const std::string alphabet = "абвгдеёжзиклмнопрстуфхцчшщъыьэюя ";
-    const int n = 33; // Длина алфавита
+std::string vigenere_encrypt(const std::string& text, const std::string& key) {
+    // Русский алфавит (33 буквы)
+    const std::string alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
+    const int n = alphabet.size();
 
-    // Если в ключе ничего нету, возвращаем неизмененный текст
+    // Проверка и подготовка ключа
     if (key.empty()) return text;
 
-    std::string clean_key; // Все символы в нижнем регистре
-    
-    // Цикл проходит по каждому символу key и оставляет только буквы (в clean_key)
+    std::string clean_key;
     for (char c : key) {
         unsigned char uc = static_cast<unsigned char>(c);
         if (std::isalpha(uc)) {
@@ -24,7 +21,7 @@ std::string vienere_encrypt(const std::string text, const std::string key)
 
     // Шифрование текста
     std::string result;
-    unsigned int key_index = 0;
+    size_t key_index = 0;
 
     for (char c : text) {
         unsigned char uc = static_cast<unsigned char>(c);
@@ -33,13 +30,11 @@ std::string vienere_encrypt(const std::string text, const std::string key)
             continue;
         }
 
-        // Определение регистра и базовой буквы
-        bool is_upper = std::isupper(uc);
         char base_char = std::tolower(uc);
 
         // Поиск позиции символа в алфавите
         size_t text_pos = alphabet.find(base_char);
-        if (text_pos == std::string::npos) { // npos означает не найденную позицию
+        if (text_pos == std::string::npos) {
             result += c;
             continue;
         }
@@ -48,19 +43,14 @@ std::string vienere_encrypt(const std::string text, const std::string key)
         char key_char = clean_key[key_index % clean_key.size()];
         size_t key_pos = alphabet.find(key_char);
 
-        // Шифрование: (позиция_текста + позиция_ключа) % 33
-        unsigned int new_pos = (text_pos + key_pos) % n;
+        // Шифрование: (позиция_текста + позиция_ключа) mod 33
+        size_t new_pos = (text_pos + key_pos) % n;
         char new_char = alphabet[new_pos];
 
-        // Восстановление регистра
-        if (is_upper) {
-            result += static_cast<char>(std::toupper(new_char));
-        }
-        else {
-            result += new_char;
-        }
-        key_index++;
+        result += new_char;
+        
     }
+
     return result;
 }
 
@@ -68,5 +58,5 @@ int main()
 {
     setlocale(LC_ALL, "ru");
 
-    std::cout << vienere_encrypt("Привет Пока!", "нет");
+    std::cout << vigenere_encrypt("Привет Пока!", "нет");
 }
