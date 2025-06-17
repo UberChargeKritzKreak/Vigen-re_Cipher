@@ -10,6 +10,8 @@ std::string vienere_encrypt(const std::string text, const std::string key)
 
     // Если в ключе ничего нету, возвращаем неизмененный текст
     if (key.empty()) return text;
+
+    std::string clean_key; // Все символы в нижнем регистре 
 }
 
 int main()
