@@ -107,6 +107,10 @@ std::string vigenere_encrypt(const std::string& text, const std::string& key) {
         result += new_char;
         
     }
-
     return result;
+}
+
+std::string ready(std::string file_name)
+{
+
 }
