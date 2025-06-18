@@ -1,111 +1,124 @@
-#include <iostream>
+п»ї#include <iostream>
 #include <string>
+#include <vector>
+#include <cmath>
 #include <cctype>
 
+// Р­С‚Р°Р»РѕРЅРЅС‹Рµ С‡Р°СЃС‚РѕС‚С‹ Р±СѓРєРІ СЂСѓСЃСЃРєРѕРіРѕ СЏР·С‹РєР° (РІ РїРѕСЂСЏРґРєРµ Р°Р»С„Р°РІРёС‚Р°)
+const std::vector<double> RUSSIAN_FREQUENCIES = {
+    0.0801, 0.0159, 0.0454, 0.0170, 0.0017, 0.0298, 0.0004, 0.0094, 0.0174,
+    0.0745, 0.0121, 0.0349, 0.0440, 0.0321, 0.0670, 0.1097, 0.0281, 0.0473,
+    0.0547, 0.0626, 0.0262, 0.0026, 0.0097, 0.0048, 0.0144, 0.0073, 0.0036,
+    0.0004, 0.0190, 0.0032, 0.0064, 0.0020, 0.0201  // "Р°Р±РІРіРґРµС‘Р¶Р·РёР№РєР»РјРЅРѕРїСЂСЃС‚СѓС„С…С†С‡С€С‰СЉС‹СЊСЌСЋСЏ"
+};
+
+double calculate_ic(const std::string&);
+
 std::string vigenere_cipher(const std::string&, const std::string&, bool);
+std::string break_vigenere(const std::string&);
 
 int main(int argc, char* argv[])
 {
-    setlocale(LC_ALL, "Russian"); // Подключение русской локали
+    setlocale(LC_ALL, "Russian"); // РџРѕРґРєР»СЋС‡РµРЅРёРµ СЂСѓСЃСЃРєРѕР№ Р»РѕРєР°Р»Рё
     
-    // Переключение кодировки в консоли на Windows-1251
+    // РџРµСЂРµРєР»СЋС‡РµРЅРёРµ РєРѕРґРёСЂРѕРІРєРё РІ РєРѕРЅСЃРѕР»Рё РЅР° Windows-1251
     system("chcp 1251");
     system("cls");
 
-    // Справка
+    // РЎРїСЂР°РІРєР°
     if (argc == 2)
     {
         std::string argument = argv[1];
 
         if (argument == "-h" || argument == "help")
         {
-            // Вызов функции справки
-            std::cout << "Вызов функции справки...\n";
+            // Р’С‹Р·РѕРІ С„СѓРЅРєС†РёРё СЃРїСЂР°РІРєРё
+            std::cout << "Р’С‹Р·РѕРІ С„СѓРЅРєС†РёРё СЃРїСЂР°РІРєРё...\n";
             return 0;
         }
     }
 
-    // Аргументов недостаточно для работы программы
+    // РђСЂРіСѓРјРµРЅС‚РѕРІ РЅРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ РґР»СЏ СЂР°Р±РѕС‚С‹ РїСЂРѕРіСЂР°РјРјС‹
     if (argc < 2)
     {
-        std::cerr << "Ошибка: Неверное количество аргументов\n";
-        // Вызов функции справки
-        std::cout << "Вызов функции справки...\n" << std::endl;
+        std::cerr << "РћС€РёР±РєР°: РќРµРІРµСЂРЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ Р°СЂРіСѓРјРµРЅС‚РѕРІ\n";
+        // Р’С‹Р·РѕРІ С„СѓРЅРєС†РёРё СЃРїСЂР°РІРєРё
+        std::cout << "Р’С‹Р·РѕРІ С„СѓРЅРєС†РёРё СЃРїСЂР°РІРєРё...\n" << std::endl;
         return 1;
     }
 
-    std::string mode = argv[1]; // Режим работы программы
+    std::string mode = argv[1]; // Р РµР¶РёРј СЂР°Р±РѕС‚С‹ РїСЂРѕРіСЂР°РјРјС‹
 
-    // Если выбран режим шифрования или расшифрования
+    // Р•СЃР»Рё РІС‹Р±СЂР°РЅ СЂРµР¶РёРј С€РёС„СЂРѕРІР°РЅРёСЏ РёР»Рё СЂР°СЃС€РёС„СЂРѕРІР°РЅРёСЏ
     if (mode == "-sh" || mode == "-rsh")
     {
         if (argc != 6)
         {
-            std::cerr << "Ошибка: Неверное количество аргументов\n";
-            // Вызов функции справки
-            std::cout << "Вызов функции справки...\n" << std::endl;
+            std::cerr << "РћС€РёР±РєР°: РќРµРІРµСЂРЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ Р°СЂРіСѓРјРµРЅС‚РѕРІ\n";
+            // Р’С‹Р·РѕРІ С„СѓРЅРєС†РёРё СЃРїСЂР°РІРєРё
+            std::cout << "Р’С‹Р·РѕРІ С„СѓРЅРєС†РёРё СЃРїСЂР°РІРєРё...\n" << std::endl;
             return 1;
         }
 
-        std::string input_file_name = argv[2]; // Имя файла, в котором содержится зашифрованный текст
-        std::string key_flag = argv[3]; // Флаг ключа
-        std::string key_value = argv[4]; // Значение ключа
-        std::string output_file_name = argv[5]; // Имя файла, в который поместится дешифрованный текст
+        std::string input_file_name = argv[2]; // РРјСЏ С„Р°Р№Р»Р°, РІ РєРѕС‚РѕСЂРѕРј СЃРѕРґРµСЂР¶РёС‚СЃСЏ Р·Р°С€РёС„СЂРѕРІР°РЅРЅС‹Р№ С‚РµРєСЃС‚
+        std::string key_flag = argv[3]; // Р¤Р»Р°Рі РєР»СЋС‡Р°
+        std::string key_value = argv[4]; // Р—РЅР°С‡РµРЅРёРµ РєР»СЋС‡Р°
+        std::string output_file_name = argv[5]; // РРјСЏ С„Р°Р№Р»Р°, РІ РєРѕС‚РѕСЂС‹Р№ РїРѕРјРµСЃС‚РёС‚СЃСЏ РґРµС€РёС„СЂРѕРІР°РЅРЅС‹Р№ С‚РµРєСЃС‚
 
-        // Проверка, что после имени входного файла следует флаг ключа
+        // РџСЂРѕРІРµСЂРєР°, С‡С‚Рѕ РїРѕСЃР»Рµ РёРјРµРЅРё РІС…РѕРґРЅРѕРіРѕ С„Р°Р№Р»Р° СЃР»РµРґСѓРµС‚ С„Р»Р°Рі РєР»СЋС‡Р°
         if (key_flag != "-k")
         {
-            std::cerr << "Ошибка: Ожидался флаг -k перед ключом\n";
-            // Вызов функции справки
-            std::cout << "Вызов функции справки...\n" << std::endl;
+            std::cerr << "РћС€РёР±РєР°: РћР¶РёРґР°Р»СЃСЏ С„Р»Р°Рі -k РїРµСЂРµРґ РєР»СЋС‡РѕРј\n";
+            // Р’С‹Р·РѕРІ С„СѓРЅРєС†РёРё СЃРїСЂР°РІРєРё
+            std::cout << "Р’С‹Р·РѕРІ С„СѓРЅРєС†РёРё СЃРїСЂР°РІРєРё...\n" << std::endl;
             return 1;
         }
 
-        std::cout << "Режим: " << (mode == "-sh" ? "Шифрование" : "Расшифрование") << std::endl;
-        std::cout << "Название входного файла: " << input_file_name << std::endl;
-        std::cout << "Ключ шифрования: " << key_value << std::endl;
-        std::cout << "Название выходного файла: " << output_file_name << std::endl;
+        std::cout << "Р РµР¶РёРј: " << (mode == "-sh" ? "РЁРёС„СЂРѕРІР°РЅРёРµ" : "Р Р°СЃС€РёС„СЂРѕРІР°РЅРёРµ") << std::endl;
+        std::cout << "РќР°Р·РІР°РЅРёРµ РІС…РѕРґРЅРѕРіРѕ С„Р°Р№Р»Р°: " << input_file_name << std::endl;
+        std::cout << "РљР»СЋС‡ С€РёС„СЂРѕРІР°РЅРёСЏ: " << key_value << std::endl;
+        std::cout << "РќР°Р·РІР°РЅРёРµ РІС‹С…РѕРґРЅРѕРіРѕ С„Р°Р№Р»Р°: " << output_file_name << std::endl;
 
-        // Вызов функций шифрования/расшифрования
+        // Р’С‹Р·РѕРІ С„СѓРЅРєС†РёР№ С€РёС„СЂРѕРІР°РЅРёСЏ/СЂР°СЃС€РёС„СЂРѕРІР°РЅРёСЏ
     }
-    // Выбран режим дешифрования
+    // Р’С‹Р±СЂР°РЅ СЂРµР¶РёРј РґРµС€РёС„СЂРѕРІР°РЅРёСЏ
     else if (mode == "-dsh")
     {
-        // Проверка, что достаточно аргументов
+        // РџСЂРѕРІРµСЂРєР°, С‡С‚Рѕ РґРѕСЃС‚Р°С‚РѕС‡РЅРѕ Р°СЂРіСѓРјРµРЅС‚РѕРІ
         if (argc != 4)
         {
-            std::cerr << "Ошибка: Неверное количество аргументов\n";
-            // Вызов функции справки
-            std::cout << "Вызов функции справки...\n" << std::endl;
+            std::cerr << "РћС€РёР±РєР°: РќРµРІРµСЂРЅРѕРµ РєРѕР»РёС‡РµСЃС‚РІРѕ Р°СЂРіСѓРјРµРЅС‚РѕРІ\n";
+            // Р’С‹Р·РѕРІ С„СѓРЅРєС†РёРё СЃРїСЂР°РІРєРё
+            std::cout << "Р’С‹Р·РѕРІ С„СѓРЅРєС†РёРё СЃРїСЂР°РІРєРё...\n" << std::endl;
             return 1;
         }
 
-        std::string input_file_name = argv[2]; // Имя файла, в котором содержится зашифрованный текст
-        std::string output_file_name = argv[3]; // Имя файла, в который поместится дешифрованный текст
+        std::string input_file_name = argv[2]; // РРјСЏ С„Р°Р№Р»Р°, РІ РєРѕС‚РѕСЂРѕРј СЃРѕРґРµСЂР¶РёС‚СЃСЏ Р·Р°С€РёС„СЂРѕРІР°РЅРЅС‹Р№ С‚РµРєСЃС‚
+        std::string output_file_name = argv[3]; // РРјСЏ С„Р°Р№Р»Р°, РІ РєРѕС‚РѕСЂС‹Р№ РїРѕРјРµСЃС‚РёС‚СЃСЏ РґРµС€РёС„СЂРѕРІР°РЅРЅС‹Р№ С‚РµРєСЃС‚
 
-        std::cout << "Режим: Дешифрование" << std::endl;
-        std::cout << "Название входного файла: " << input_file_name << std::endl;
-        std::cout << "Название выходного файла: " << output_file_name << std::endl;
+        std::cout << "Р РµР¶РёРј: Р”РµС€РёС„СЂРѕРІР°РЅРёРµ" << std::endl;
+        std::cout << "РќР°Р·РІР°РЅРёРµ РІС…РѕРґРЅРѕРіРѕ С„Р°Р№Р»Р°: " << input_file_name << std::endl;
+        std::cout << "РќР°Р·РІР°РЅРёРµ РІС‹С…РѕРґРЅРѕРіРѕ С„Р°Р№Р»Р°: " << output_file_name << std::endl;
 
-        // Вызов функции дешифрования
+        // Р’С‹Р·РѕРІ С„СѓРЅРєС†РёРё РґРµС€РёС„СЂРѕРІР°РЅРёСЏ
     }
     else
     {
-        std::cerr << "Ошибка: Неизвестный режим работы программы: " << mode << std::endl;
-        // Вызов функции справки
-        std::cout << "Вызов функции справки...\n" << std::endl;
+        std::cerr << "РћС€РёР±РєР°: РќРµРёР·РІРµСЃС‚РЅС‹Р№ СЂРµР¶РёРј СЂР°Р±РѕС‚С‹ РїСЂРѕРіСЂР°РјРјС‹: " << mode << std::endl;
+        // Р’С‹Р·РѕРІ С„СѓРЅРєС†РёРё СЃРїСЂР°РІРєРё
+        std::cout << "Р’С‹Р·РѕРІ С„СѓРЅРєС†РёРё СЃРїСЂР°РІРєРё...\n" << std::endl;
         return 1;
     }
 }
 
-// Функция шифрования/расшифрования текста
+// Р¤СѓРЅРєС†РёСЏ С€РёС„СЂРѕРІР°РЅРёСЏ/СЂР°СЃС€РёС„СЂРѕРІР°РЅРёСЏ С‚РµРєСЃС‚Р°
 std::string vigenere_cipher(const std::string& text, const std::string& key, bool encrypt = true)
 {
-    // Русский алфавит (33 буквы)
-    const std::string alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
+    // Р СѓСЃСЃРєРёР№ Р°Р»С„Р°РІРёС‚ (33 Р±СѓРєРІС‹)
+    const std::string alphabet = "Р°Р±РІРіРґРµС‘Р¶Р·РёР№РєР»РјРЅРѕРїСЂСЃС‚СѓС„С…С†С‡С€С‰СЉС‹СЊСЌСЋСЏ";
     const int n = alphabet.size();
 
-    // Подготовка ключа (только строчные буквы алфавита)
+    // РџРѕРґРіРѕС‚РѕРІРєР° РєР»СЋС‡Р° (С‚РѕР»СЊРєРѕ СЃС‚СЂРѕС‡РЅС‹Рµ Р±СѓРєРІС‹ Р°Р»С„Р°РІРёС‚Р°)
     std::string clean_key;
     for (char c : key) {
         char lower_c = std::tolower(static_cast<unsigned char>(c));
@@ -115,35 +128,168 @@ std::string vigenere_cipher(const std::string& text, const std::string& key, boo
     }
     if (clean_key.empty()) return text;
 
-    // Обработка текста
+    // РћР±СЂР°Р±РѕС‚РєР° С‚РµРєСЃС‚Р°
     std::string result;
     size_t key_index = 0;
 
     for (char c : text) {
         char lower_c = std::tolower(static_cast<unsigned char>(c));
         size_t text_pos = alphabet.find(lower_c);
-
+        
         if (text_pos == std::string::npos) {
-            result += lower_c;  // Не-буквы сохраняем как есть
+            result += lower_c;  // РќРµ-Р±СѓРєРІС‹ СЃРѕС…СЂР°РЅСЏРµРј РєР°Рє РµСЃС‚СЊ
             continue;
         }
 
-        // Получаем символ ключа
+        // РџРѕР»СѓС‡Р°РµРј СЃРёРјРІРѕР» РєР»СЋС‡Р°
         char key_char = clean_key[key_index % clean_key.size()];
         size_t key_pos = alphabet.find(key_char);
         key_index++;
 
-        // Вычисляем новую позицию
+        // Р’С‹С‡РёСЃР»СЏРµРј РЅРѕРІСѓСЋ РїРѕР·РёС†РёСЋ
         size_t new_pos;
         if (encrypt) {
-            new_pos = (text_pos + key_pos) % n;  // Шифрование
+            new_pos = (text_pos + key_pos) % n;  // РЁРёС„СЂРѕРІР°РЅРёРµ
         }
         else {
-            new_pos = (text_pos - key_pos + n) % n;  // Расшифровка
+            new_pos = (text_pos - key_pos + n) % n;  // Р Р°СЃС€РёС„СЂРѕРІРєР°
         }
 
         result += alphabet[new_pos];
     }
 
     return result;
+ }
+
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РІС‹С‡РёСЃР»РµРЅРёСЏ РёРЅРґРµРєСЃР° СЃРѕРІРїР°РґРµРЅРёР№
+double calculate_ic(const std::string& text) {
+    if (text.length() < 2) return 0.0;
+
+    const std::string alphabet = "Р°Р±РІРіРґРµС‘Р¶Р·РёР№РєР»РјРЅРѕРїСЂСЃС‚СѓС„С…С†С‡С€С‰СЉС‹СЊСЌСЋСЏ";
+    std::vector<int> counts(alphabet.size(), 0);
+    int total_letters = 0;
+
+    for (char c : text) {
+        size_t pos = alphabet.find(c);
+        if (pos != std::string::npos) {
+            counts[pos]++;
+            total_letters++;
+        }
+    }
+
+    double ic = 0.0;
+    for (int count : counts) {
+        ic += count * (count - 1);
+    }
+
+    return ic / (total_letters * (total_letters - 1));
+}
+
+// Р¤СѓРЅРєС†РёСЏ РґР»СЏ РІР·Р»РѕРјР° С€РёС„СЂР° Р’РёР¶РµРЅРµСЂР°
+std::string break_vigenere(const std::string& ciphertext)
+{
+    const std::string alphabet = "Р°Р±РІРіРґРµС‘Р¶Р·РёР№РєР»РјРЅРѕРїСЂСЃС‚СѓС„С…С†С‡С€С‰СЉС‹СЊСЌСЋСЏ";
+    const int max_key_length = 30;
+    int best_key_length = 1;
+    double best_ic = 0.0;
+
+    // РЁР°Рі 1: РћРїСЂРµРґРµР»РµРЅРёРµ РґР»РёРЅС‹ РєР»СЋС‡Р°
+    for (int key_len = 1; key_len <= max_key_length; key_len++)
+    {
+        double sum_ic = 0.0;
+        int sequences = 0;
+
+        for (int i = 0; i < key_len; i++)
+        {
+            std::string sequence;
+            for (int j = i; j < ciphertext.length(); j += key_len)
+            {
+                char c = std::tolower(static_cast<unsigned char>(ciphertext[j]));
+                if (alphabet.find(c) != std::string::npos) 
+                    sequence += c;
+            }
+
+            if (sequence.length() > 1)
+            {
+                double seq_ic = calculate_ic(sequence);
+                sum_ic += seq_ic;
+                sequences++;
+            }
+        }
+
+        if (sequences > 0)
+        {
+            double avg_ic = sum_ic / sequences;
+            if (avg_ic > best_ic)
+            {
+                best_ic = avg_ic;
+                best_key_length = key_len;
+            }
+        }
+    }
+
+    // РЁР°Рі 2: РћРїСЂРµРґРµР»РµРЅРёРµ СЃРёРјРІРѕР»РѕРІ РєР»СЋС‡Р°
+    std::string recovered_key;
+    for (int i = 0; i < best_key_length; i++)
+    {
+        std::string sequence;
+        for (int j = i; j < ciphertext.length(); j += best_key_length)
+        {
+            char c = std::tolower(static_cast<unsigned char>(ciphertext[j]));
+            if (alphabet.find(c) != std::string::npos)
+                sequence += c;
+        }
+
+        double best_chi_sq = 1e9;
+        char best_char = 'Р°';
+
+        for (char c : alphabet)
+        {
+            // РџСЂРѕР±СѓРµРј СЂР°СЃС€РёС„СЂРѕРІР°С‚СЊ РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕСЃС‚СЊ СЃ С‚РµРєСѓС‰РёРј СЃРёРјРІРѕР»РѕРј РєР»СЋС‡Р°
+            std::string decrypted_seq;
+            for (char ch : sequence)
+            {
+                size_t pos = alphabet.find(ch);
+                size_t key_pos = alphabet.find(c);
+                size_t new_pos = (pos - key_pos + alphabet.size()) % alphabet.size();
+                decrypted_seq += alphabet[new_pos];
+            }
+
+            // Р’С‹С‡РёСЃР»СЏРµРј СЂР°СЃРїСЂРµРґРµР»РµРЅРёРµ С‡Р°СЃС‚РѕС‚
+            std::vector<int> freq_counts(alphabet.size(), 0);
+            int total_chars = 0;
+
+            for (char ch : decrypted_seq) 
+            {
+                size_t pos = alphabet.find(ch);
+                if (pos != std::string::npos) 
+                {
+                    freq_counts[pos]++;
+                    total_chars++;
+                }
+            }
+
+            // Р’С‹С‡РёСЃР»СЏРµРј СЃС‚Р°С‚РёСЃС‚РёРєСѓ С…Рё-РєРІР°РґСЂР°С‚
+            double chi_sq = 0.0;
+            if (total_chars > 0)
+            {
+                for (size_t j = 0; j < alphabet.size(); j++)
+                {
+                    double expected = RUSSIAN_FREQUENCIES[j] * total_chars;
+                    double observed = freq_counts[j];
+                    double diff = observed - expected;
+                    chi_sq += (diff * diff) / expected;
+                }
+
+                if (chi_sq < best_chi_sq)
+                {
+                    best_chi_sq = chi_sq;
+                    best_char = c;
+                }
+            }
+        }
+        recovered_key += best_char;
+    }
+
+    return recovered_key;
 }
