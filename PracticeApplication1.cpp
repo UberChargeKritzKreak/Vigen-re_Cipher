@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <string>
 #include <cctype>
 #include <fstream>
@@ -10,44 +10,44 @@ std::string ready(const std::string file_name) {
     std::ifstream fin(file_name);
 
     if (!fin.is_open()) {
-        std::cerr << "Îøèáêà: íå óäàëîñü îòêðûòü ôàéë '" << file_name << "'" << std::endl;
-        return ""; // Âîçâðàùàåì ïóñòóþ ñòðîêó ïðè îøèáêå
+        std::cerr << "ÐžÑˆÐ¸Ð±ÐºÐ°: Ð½Ðµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ Ð¾Ñ‚ÐºÑ€Ñ‹Ñ‚ÑŒ Ñ„Ð°Ð¹Ð» '" << file_name << "'" << std::endl;
+        return ""; // Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‰Ð°ÐµÐ¼ Ð¿ÑƒÑÑ‚ÑƒÑŽ ÑÑ‚Ñ€Ð¾ÐºÑƒ Ð¿Ñ€Ð¸ Ð¾ÑˆÐ¸Ð±ÐºÐµ
     }
 
     std::string str;
-    if (std::getline(fin, str)) { // ×òåíèå ïåðâîé ñòðîêè ñ ïîìîùüþ std::getline
+    if (std::getline(fin, str)) { // Ð§Ñ‚ÐµÐ½Ð¸Ðµ Ð¿ÐµÑ€Ð²Ð¾Ð¹ ÑÑ‚Ñ€Ð¾ÐºÐ¸ Ñ Ð¿Ð¾Ð¼Ð¾Ñ‰ÑŒÑŽ std::getline
         fin.close();
         return str;
     }
     else {
         fin.close();
-        std::cerr << "Îøèáêà: ôàéë ïóñò èëè îøèáêà ÷òåíèÿ" << std::endl;
+        std::cerr << "ÐžÑˆÐ¸Ð±ÐºÐ°: Ñ„Ð°Ð¹Ð» Ð¿ÑƒÑÑ‚ Ð¸Ð»Ð¸ Ð¾ÑˆÐ¸Ð±ÐºÐ° Ñ‡Ñ‚ÐµÐ½Ð¸Ñ" << std::endl;
         return "";
     }
 }
 
 bool writey(const std::string filename, const std::string content) {
-    // Ïîëó÷àåì ïîëíûé ïóòü ê ôàéëó (òåêóùàÿ äèðåêòîðèÿ + èìÿ ôàéëà)
-    std::string full_path = filename;  // Â òåêóùåé äèðåêòîðèè
+    // ÐŸÐ¾Ð»ÑƒÑ‡Ð°ÐµÐ¼ Ð¿Ð¾Ð»Ð½Ñ‹Ð¹ Ð¿ÑƒÑ‚ÑŒ Ðº Ñ„Ð°Ð¹Ð»Ñƒ (Ñ‚ÐµÐºÑƒÑ‰Ð°Ñ Ð´Ð¸Ñ€ÐµÐºÑ‚Ð¾Ñ€Ð¸Ñ + Ð¸Ð¼Ñ Ñ„Ð°Ð¹Ð»Ð°)
+    std::string full_path = filename;  // Ð’ Ñ‚ÐµÐºÑƒÑ‰ÐµÐ¹ Ð´Ð¸Ñ€ÐµÐºÑ‚Ð¾Ñ€Ð¸Ð¸
 
-    // Ñîçäàåì è çàïèñûâàåì ôàéë
+    // Ð¡Ð¾Ð·Ð´Ð°ÐµÐ¼ Ð¸ Ð·Ð°Ð¿Ð¸ÑÑ‹Ð²Ð°ÐµÐ¼ Ñ„Ð°Ð¹Ð»
     std::ofstream out_file(full_path);
     if (!out_file) {
-        std::cerr << "Îøèáêà: íå óäàëîñü ñîçäàòü ôàéë " << full_path << std::endl;
+        std::cerr << "ÐžÑˆÐ¸Ð±ÐºÐ°: Ð½Ðµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ ÑÐ¾Ð·Ð´Ð°Ñ‚ÑŒ Ñ„Ð°Ð¹Ð» " << full_path << std::endl;
         return false;
     }
 
     out_file << content;
 
     if (!out_file) {
-        std::cerr << "Îøèáêà çàïèñè â ôàéë " << full_path << std::endl;
+        std::cerr << "ÐžÑˆÐ¸Ð±ÐºÐ° Ð·Ð°Ð¿Ð¸ÑÐ¸ Ð² Ñ„Ð°Ð¹Ð» " << full_path << std::endl;
         return false;
     }
 
     out_file.close();
 
-    // Âûâîäèì ïîëíûé ïóòü ê ñîõðàíåííîìó ôàéëó
-    std::cout << "Ôàéë óñïåøíî çàïèñàí: ";
+    // Ð’Ñ‹Ð²Ð¾Ð´Ð¸Ð¼ Ð¿Ð¾Ð»Ð½Ñ‹Ð¹ Ð¿ÑƒÑ‚ÑŒ Ðº ÑÐ¾Ñ…Ñ€Ð°Ð½ÐµÐ½Ð½Ð¾Ð¼Ñƒ Ñ„Ð°Ð¹Ð»Ñƒ
+    std::cout << "Ð¤Ð°Ð¹Ð» ÑƒÑÐ¿ÐµÑˆÐ½Ð¾ Ð·Ð°Ð¿Ð¸ÑÐ°Ð½: ";
     std::cout << full_path << std::endl;
 
     return true;
