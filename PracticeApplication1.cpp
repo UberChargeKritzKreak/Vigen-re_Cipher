@@ -1,8 +1,10 @@
 #include <iostream>
 #include <string>
 #include <cctype>
+#include <fstream>
 
 std::string vigenere_encrypt(const std::string&, const std::string&);
+std::string ready(std::string file_name);
  
 int main(int argc, char* argv[])
 {
@@ -57,6 +59,8 @@ int main(int argc, char* argv[])
         // Вызов функции справки
         std::cout << std::endl << "Вызов функции справки..." << std::endl;
     }
+
+    std::cout << ready("D:\\Flash drive\\практика\\code");
 }
 
 std::string vigenere_encrypt(const std::string& text, const std::string& key) {
@@ -112,5 +116,11 @@ std::string vigenere_encrypt(const std::string& text, const std::string& key) {
 
 std::string ready(std::string file_name)
 {
+    char buff[500]; // Буфер промежуточного хранения считываемого из файла текста
+    std::ifstream fin(file_name); // Открыли файл для чтения
+    fin.getline(buff, 500); // Считали строку из файла
+    std::string str(buff); //Преобразовали массив в строку
+    fin.close(); // Закрываем файл
 
+    return buff;
 }
