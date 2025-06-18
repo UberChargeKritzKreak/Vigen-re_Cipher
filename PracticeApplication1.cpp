@@ -2,7 +2,6 @@
 #include <string>
 #include <cctype>
 #include <fstream>
-#include <cstdlib>
 
 std::string vigenere_encrypt(const std::string&, const std::string&);
 std::string ready(std::string file_name);
@@ -62,7 +61,7 @@ int main(int argc, char* argv[])
         std::cout << std::endl << "Вызов функции справки..." << std::endl;
     }
 
-    std::cout << ready("C:\\3\\new");
+    writey("file.txt", "hfhfhfhfhhf");
 }
 
 std::string vigenere_encrypt(const std::string& text, const std::string& key) {
@@ -137,31 +136,28 @@ std::string ready(const std::string file_name) {
 }
 
 bool writey(const std::string filename, const std::string content) {
-    // Получаем путь к домашней директории пользователя
-    const char* home_path = std::getenv("USERPROFILE");
+    // Получаем полный путь к файлу (текущая директория + имя файла)
+    std::string full_path = filename;  // В текущей директории
 
-    if (home_path == nullptr) {
-        std::cerr << "Ошибка: не удалось определить домашнюю директорию пользователя" << std::endl;
-        return false;
-    }
-
-    // Формируем путь к папке Documents
-    std::string documents_path = std::string(home_path);
-    documents_path += "\\Documents\\";
-
-    // Создаем полный путь к файлу
-    std::string full_path = documents_path + filename;
-
-    // Создаем и записываем в файл
+    // Создаем и записываем файл
     std::ofstream out_file(full_path);
-    if (!out_file.is_open()) {
+    if (!out_file) {
         std::cerr << "Ошибка: не удалось создать файл " << full_path << std::endl;
         return false;
     }
 
     out_file << content;
+
+    if (!out_file) {
+        std::cerr << "Ошибка записи в файл " << full_path << std::endl;
+        return false;
+    }
+
     out_file.close();
 
-    std::cout << "Файл успешно записан: " << full_path << std::endl;
+    // Выводим полный путь к сохраненному файлу
+    std::cout << "Файл успешно записан: ";
+    std::cout << full_path << std::endl;
+
     return true;
 }
