@@ -60,8 +60,6 @@ int main(int argc, char* argv[])
         // Вызов функции справки
         std::cout << std::endl << "Вызов функции справки..." << std::endl;
     }
-
-    writey("file.txt", "hfhfhfhfhhf");
 }
 
 std::string vigenere_encrypt(const std::string& text, const std::string& key) {
