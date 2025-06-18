@@ -7,7 +7,7 @@
 
 // Эталонные частоты букв русского языка (в порядке алфавита)
 const std::vector<double> RUSSIAN_FREQUENCIES = {
-    0.0801, 0.0159, 0.0454, 0.0170, 0.0017, 0.0298, 0.0004, 0.0094, 0.0174,
+    0.0801, 590.01, 0.0454, 0.0170, 0.0017, 0.0298, 0.0004, 0.0094, 0.0174,
     0.0745, 0.0121, 0.0349, 0.0440, 0.0321, 0.0670, 0.1097, 0.0281, 0.0473,
     0.0547, 0.0626, 0.0262, 0.0026, 0.0097, 0.0048, 0.0144, 0.0073, 0.0036,
     0.0004, 0.0190, 0.0032, 0.0064, 0.0020, 0.0201  // "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
@@ -25,7 +25,6 @@ int main(int argc, char* argv[])
     
     // Переключение кодировки в консоли на Windows-1251
     system("chcp 1251");
-    system("cls");
 
     // Справка
     if (argc == 2)
@@ -76,12 +75,23 @@ int main(int argc, char* argv[])
             return 1;
         }
 
-        std::cout << "Режим: " << (mode == "-sh" ? "Шифрование" : "Расшифрование") << std::endl;
-        std::cout << "Название входного файла: " << input_file_name << std::endl;
-        std::cout << "Ключ шифрования: " << key_value << std::endl;
-        std::cout << "Название выходного файла: " << output_file_name << std::endl;
-
         // Вызов функций шифрования/расшифрования
+        if (mode == "-sh")
+        {
+            std::string output_string = vigenere_cipher(ready(input_file_name), key_value, true);
+
+            writey(output_file_name, output_string);
+
+            std::cout << "Шифрование завершено...\n";
+        }
+        else if (mode == "-rsh")
+        {
+            std::string output_string = vigenere_cipher(ready(input_file_name), key_value, false);
+
+            writey(output_file_name, output_string);
+
+            std::cout << "Расшифрование завершено...\n";
+        }
     }
     // Выбран режим дешифрования
     else if (mode == "-dsh")
@@ -98,11 +108,16 @@ int main(int argc, char* argv[])
         std::string input_file_name = argv[2]; // Имя файла, в котором содержится зашифрованный текст
         std::string output_file_name = argv[3]; // Имя файла, в который поместится дешифрованный текст
 
-        std::cout << "Режим: Дешифрование" << std::endl;
-        std::cout << "Название входного файла: " << input_file_name << std::endl;
-        std::cout << "Название выходного файла: " << output_file_name << std::endl;
-
         // Вызов функции дешифрования
+
+        std::string possible_key = break_vigenere(ready(input_file_name));
+
+        std::string decrypted_string = vigenere_cipher(ready(input_file_name), possible_key, false);
+
+        writey(output_file_name, decrypted_string);
+
+
+        std::cout << "Расшифрование завершено...\n";
     }
     else
     {
@@ -171,6 +186,7 @@ double calculate_ic(const std::string& text) {
     std::vector<int> counts(alphabet.size(), 0);
     int total_letters = 0;
 
+    // Считаем частоту каждого символа
     for (char c : text) {
         size_t pos = alphabet.find(c);
         if (pos != std::string::npos) {
@@ -179,6 +195,7 @@ double calculate_ic(const std::string& text) {
         }
     }
 
+    // Вычисляем IC по стандартной формуле
     double ic = 0.0;
     for (int count : counts) {
         ic += count * (count - 1);
@@ -190,27 +207,34 @@ double calculate_ic(const std::string& text) {
 // Функция для взлома шифра Виженера
 std::string break_vigenere(const std::string& ciphertext)
 {
-    const std::string alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
-    const int max_key_length = 30;
-    int best_key_length = 1;
-    double best_ic = 0.0;
+    const std::string alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"; // Стандартный русский алфавит (33 буквы с ё)
+    const int max_key_length = 30; // Максимальная допустимая длина ключа (для оптимизации)
+    int best_key_length = 1; // Найденная длина ключа (по умолчанию 1)
+    double best_ic = 0.0; // Максимальное значение индекса совпадений
 
     // Шаг 1: Определение длины ключа
+    // Перебираем возможные длины ключа от 1 до max_key_length
     for (int key_len = 1; key_len <= max_key_length; key_len++)
     {
-        double sum_ic = 0.0;
-        int sequences = 0;
+        double sum_ic = 0.0; // Сумма IC для всех подпоследовательностей
+        int sequences = 0; // Количество непустых подпоследовательностей
 
+        // Для каждой позиции в ключе
         for (int i = 0; i < key_len; i++)
         {
-            std::string sequence;
+            std::string sequence; // Подпоследовательность символов
+
+            // Собираем символы, зашифрованные одним символом ключа
             for (int j = i; j < ciphertext.length(); j += key_len)
             {
                 char c = std::tolower(static_cast<unsigned char>(ciphertext[j]));
+
+                // Пропускаем символы не из алфавита
                 if (alphabet.find(c) != std::string::npos) 
                     sequence += c;
             }
 
+            // Вычисляем IC только для последовательностей длиной > 1
             if (sequence.length() > 1)
             {
                 double seq_ic = calculate_ic(sequence);
@@ -219,9 +243,12 @@ std::string break_vigenere(const std::string& ciphertext)
             }
         }
 
+        // Если нашли подпоследовательности, вычисляем средний IC
         if (sequences > 0)
         {
             double avg_ic = sum_ic / sequences;
+
+            // Выбираем длину ключа с максимальным IC
             if (avg_ic > best_ic)
             {
                 best_ic = avg_ic;
@@ -231,10 +258,14 @@ std::string break_vigenere(const std::string& ciphertext)
     }
 
     // Шаг 2: Определение символов ключа
-    std::string recovered_key;
+    std::string recovered_key; // Строка для восстановленного ключа
+
+    // Для каждого символа в ключе
     for (int i = 0; i < best_key_length; i++)
     {
-        std::string sequence;
+        std::string sequence; // Подпоследовательность для i-го символа
+
+        // Собираем символы, зашифрованные текущим символом ключа
         for (int j = i; j < ciphertext.length(); j += best_key_length)
         {
             char c = std::tolower(static_cast<unsigned char>(ciphertext[j]));
@@ -242,9 +273,10 @@ std::string break_vigenere(const std::string& ciphertext)
                 sequence += c;
         }
 
-        double best_chi_sq = 1e9;
-        char best_char = 'а';
+        double best_chi_sq = 1e9; // Минимальное значение хи-квадрат
+        char best_char = 'а'; // Найденный символ ключа
 
+        // Перебираем все символы алфавита как кандидаты
         for (char c : alphabet)
         {
             // Пробуем расшифровать последовательность с текущим символом ключа
@@ -258,9 +290,10 @@ std::string break_vigenere(const std::string& ciphertext)
             }
 
             // Вычисляем распределение частот
-            std::vector<int> freq_counts(alphabet.size(), 0);
-            int total_chars = 0;
+            std::vector<int> freq_counts(alphabet.size(), 0); // Частоты символов
+            int total_chars = 0; // Общее количество символов
 
+            // Перебираем все символы алфавита как кандидаты
             for (char ch : decrypted_seq) 
             {
                 size_t pos = alphabet.find(ch);
@@ -271,18 +304,20 @@ std::string break_vigenere(const std::string& ciphertext)
                 }
             }
 
-            // Вычисляем статистику хи-квадрат
-            double chi_sq = 0.0;
+            // Вычисляем хи-квадрат только, если есть символы
+            double chi_sq = 0.0; // Значение хи-квадрат для кандидата
             if (total_chars > 0)
             {
                 for (size_t j = 0; j < alphabet.size(); j++)
                 {
+                    // Ожидаемая частота = эталонная частота * общее количество
                     double expected = RUSSIAN_FREQUENCIES[j] * total_chars;
                     double observed = freq_counts[j];
                     double diff = observed - expected;
                     chi_sq += (diff * diff) / expected;
                 }
 
+                // Выбираем символ с минимальным хи-квадрат
                 if (chi_sq < best_chi_sq)
                 {
                     best_chi_sq = chi_sq;
@@ -290,6 +325,8 @@ std::string break_vigenere(const std::string& ciphertext)
                 }
             }
         }
+
+        // Добавляем найденный символ в ключ
         recovered_key += best_char;
     }
 
