@@ -18,6 +18,7 @@ std::string vigenere_cipher(const std::string&, const std::string&, bool);
 std::string break_vigenere(const std::string&);
 std::string ready(std::string file_name);
 bool writey(const std::string filename, const std::string content);
+void show_help();
 
 int main(int argc, char* argv[])
 {
@@ -34,7 +35,7 @@ int main(int argc, char* argv[])
         if (argument == "-h" || argument == "help")
         {
             // Вызов функции справки
-            std::cout << "Вызов функции справки...\n";
+            show_help();
             return 0;
         }
     }
@@ -44,7 +45,7 @@ int main(int argc, char* argv[])
     {
         std::cerr << "Ошибка: Неверное количество аргументов\n";
         // Вызов функции справки
-        std::cout << "Вызов функции справки...\n" << std::endl;
+        show_help();
         return 1;
     }
 
@@ -57,7 +58,7 @@ int main(int argc, char* argv[])
         {
             std::cerr << "Ошибка: Неверное количество аргументов\n";
             // Вызов функции справки
-            std::cout << "Вызов функции справки...\n" << std::endl;
+            show_help();
             return 1;
         }
 
@@ -71,7 +72,7 @@ int main(int argc, char* argv[])
         {
             std::cerr << "Ошибка: Ожидался флаг -k перед ключом\n";
             // Вызов функции справки
-            std::cout << "Вызов функции справки...\n" << std::endl;
+            show_help();
             return 1;
         }
 
@@ -101,7 +102,7 @@ int main(int argc, char* argv[])
         {
             std::cerr << "Ошибка: Неверное количество аргументов\n";
             // Вызов функции справки
-            std::cout << "Вызов функции справки...\n" << std::endl;
+            show_help();
             return 1;
         }
 
@@ -117,13 +118,13 @@ int main(int argc, char* argv[])
         writey(output_file_name, decrypted_string);
 
 
-        std::cout << "Расшифрование завершено...\n";
+        std::cout << "Дешифрование завершено...\n";
     }
     else
     {
         std::cerr << "Ошибка: Неизвестный режим работы программы: " << mode << std::endl;
         // Вызов функции справки
-        std::cout << "Вызов функции справки...\n" << std::endl;
+        show_help();
         return 1;
     }
 }
@@ -365,29 +366,23 @@ std::string ready(const std::string file_name) {
 }
 
 bool writey(const std::string filename, const std::string content) {
-    // Получаем полный путь к файлу (текущая директория + имя файла)
-    std::string full_path = filename;  // В текущей директории
-
-    // Создаем и записываем файл
-    std::ofstream out_file(full_path);
+    // Открываем файл в БИНАРНОМ режиме
+    std::ofstream out_file(filename, std::ios::binary);
     if (!out_file) {
-        std::cerr << "Ошибка: не удалось создать файл " << full_path << std::endl;
+        std::cerr << "Ошибка: не удалось создать файл " << filename << std::endl;
         return false;
     }
 
-    out_file << content;
+    // Записываем как бинарные данные
+    out_file.write(content.data(), content.size());
 
     if (!out_file) {
-        std::cerr << "Ошибка записи в файл " << full_path << std::endl;
+        std::cerr << "Ошибка записи в файл " << filename << std::endl;
         return false;
     }
 
     out_file.close();
-
-    // Выводим полный путь к сохраненному файлу
-    std::cout << "Файл успешно записан: ";
-    std::cout << full_path << std::endl;
-
+    std::cout << "Файл успешно записан: " << filename << std::endl;
     return true;
 }
 
