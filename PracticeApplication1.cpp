@@ -334,23 +334,34 @@ std::string break_vigenere(const std::string& ciphertext)
 }
 
 std::string ready(const std::string file_name) {
-    std::ifstream fin(file_name);
+    // Открываем файл в бинарном режиме для точного сохранения символов
+    std::ifstream fin(file_name, std::ios::binary);
 
     if (!fin.is_open()) {
-        std::cerr << "Ошибка: не удалось открыть файл '" << file_name << "'" << std::endl;
-        return ""; // Возвращаем пустую строку при ошибке
-    }
-
-    std::string str;
-    if (std::getline(fin, str)) { // Чтение первой строки с помощью std::getline
-        fin.close();
-        return str;
-    }
-    else {
-        fin.close();
-        std::cerr << "Ошибка: файл пуст или ошибка чтения" << std::endl;
+        std::cerr << "Ошибка: не удалось открыть файл '" << file_name << "'\n";
         return "";
     }
+
+    // Перемещаем указатель в конец файла
+    fin.seekg(0, std::ios::end);
+    // Проверяем размер файла
+    const auto size = fin.tellg();
+
+    if (size <= 0) { // Файл пуст или ошибка
+        fin.close();
+        return ""; // Возвращаем пустую строку
+    }
+
+    // Возвращаем указатель в начало
+    fin.seekg(0, std::ios::beg);
+
+    // Создаем строку нужного размера
+    std::string str(size, '\0');
+    // Читаем весь файл в строку
+    fin.read(&str[0], size);
+    fin.close();
+
+    return str;
 }
 
 bool writey(const std::string filename, const std::string content) {
@@ -378,4 +389,18 @@ bool writey(const std::string filename, const std::string content) {
     std::cout << full_path << std::endl;
 
     return true;
+}
+
+void show_help() {
+    std::cout << "Программа для шифрования/расшифрования файлов\n\n";
+    std::cout << "Использование:\n";
+    std::cout << "  program.exe -sh input.txt -k key output.enc\n";
+    std::cout << "  program.exe -rsh input.enc -k key output.txt\n";
+    std::cout << "  program.exe -dsh input.enc output.txt\n";
+    std::cout << "  program.exe -h\n";
+    std::cout << "  program.exe help\n\n";
+    std::cout << "Режимы работы:\n";
+    std::cout << "  -sh    Шифрование\n";
+    std::cout << "  -rsh   Расшифрование\n";
+    std::cout << "  -dsh   Дешифрование (без ключа)\n";
 }
