@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-std::string vigenere_cipher(const std::string& text, const std::string& key, bool encrypt)
+/*std::string vigenere_cipher(const std::string& text, const std::string& key, bool encrypt)
 {
     // Русский алфавит (33 буквы с ё)
     const std::string alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
@@ -183,7 +183,7 @@ std::string vigenere_cipher(const std::string& text, const std::string& key, boo
     }
 
     return result;
-}
+}*/
 
 
 // Вычисление индекса совпадений (Index of Coincidence)
