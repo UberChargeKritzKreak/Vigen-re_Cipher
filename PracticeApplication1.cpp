@@ -114,17 +114,15 @@ int main(int argc, char* argv[])
         {
             std::string output_string = vigenere_cipher(ready(input_file_name), key_value, true);
 
-            writey(output_file_name, output_string);
+            if (writey(output_file_name, output_string) == true) std::cout << "Шифрование завершено...\n";
 
-            std::cout << "Шифрование завершено...\n";
+            //std::cout << "Шифрование завершено...\n";
         }
         else if (mode == "-rsh")
         {
             std::string output_string = vigenere_cipher(ready(input_file_name), key_value, false);
 
-            writey(output_file_name, output_string);
-
-            std::cout << "Расшифрование завершено...\n";
+            if (writey(output_file_name, output_string) == true) std::cout << "Расшифрование завершено...\n";
         }
     }
     // Выбран режим дешифрования
@@ -148,10 +146,7 @@ int main(int argc, char* argv[])
 
         std::string decrypted_string = vigenere_cipher(ready(input_file_name), possible_key, false);
 
-        writey(output_file_name, decrypted_string);
-
-
-        std::cout << "Дешифрование завершено...\n";
+        if (writey(output_file_name, decrypted_string) == true) std::cout << "Дешифрование завершено...\n";
     }
     else
     {
@@ -418,14 +413,21 @@ std::string ready(const std::string file_name) {
 }
 
 bool writey(const std::string filename, const std::string content) {
-    // Открываем файл в БИНАРНОМ режиме
-    std::ofstream out_file(filename, std::ios::binary);
-    if (!out_file) {
-        std::cerr << "Ошибка: не удалось создать файл " << filename << std::endl;
+    if (content.empty()) {
+        std::cerr << "Ошибка: попытка записать пустые данные" << std::endl;
         return false;
     }
 
-    // Записываем как бинарные данные
+    // Проверяем возможность создания файла без фактического создания
+    std::ofstream test(filename);
+    if (!test) {
+        std::cerr << "Ошибка: невозможно создать файл " << filename << std::endl;
+        return false;
+    }
+    test.close();
+
+    // Основная запись
+    std::ofstream out_file(filename, std::ios::binary);
     out_file.write(content.data(), content.size());
 
     if (!out_file) {
@@ -433,7 +435,6 @@ bool writey(const std::string filename, const std::string content) {
         return false;
     }
 
-    out_file.close();
     std::cout << "Файл успешно записан: " << filename << std::endl;
     return true;
 }
