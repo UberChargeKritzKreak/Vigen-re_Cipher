@@ -116,16 +116,16 @@ int main(int argc, char* argv[])
         {
             // ×òåíèå -> Øèôðîâàíèå -> Çàïèñü
             std::string output_string = vigenere_cipher(ready(input_file_name), key_value, true);
-            writey(output_file_name, output_string);
-            std::cout << "Øèôðîâàíèå çàâåðøåíî...\n";
+
+            if (writey(output_file_name, output_string) == true) std::cout << "���������� ���������...\n";
         }
         // Ðåæèì ðàñøèôðîâàíèÿ ñ êëþ÷îì
         else if (mode == "-rsh")
         {
             // ×òåíèå -> Ðàñøèôðîâêà -> Çàïèñü
             std::string output_string = vigenere_cipher(ready(input_file_name), key_value, false);
-            writey(output_file_name, output_string);
-            std::cout << "Ðàñøèôðîâàíèå çàâåðøåíî...\n";
+
+            if (writey(output_file_name, output_string) == true) std::cout << "������������� ���������...\n";
         }
     }
     // Ðåæèì äåøèôðîâàíèÿ áåç êëþ÷à (âçëîì)
@@ -147,10 +147,8 @@ int main(int argc, char* argv[])
         std::string possible_key = break_vigenere(ready(input_file_name));
         // 2. Ðàñøèôðîâêà òåêñòà íàéäåííûì êëþ÷îì
         std::string decrypted_string = vigenere_cipher(ready(input_file_name), possible_key, false);
-        // 3. Çàïèñü ðåçóëüòàòà
-        writey(output_file_name, decrypted_string);
 
-        std::cout << "Äåøèôðîâàíèå çàâåðøåíî...\n";
+        if (writey(output_file_name, decrypted_string) == true) std::cout << "������������ ���������...\n";
     }
     // Íåèçâåñòíûé ðåæèì ðàáîòû
     else
@@ -415,22 +413,29 @@ std::string ready(const std::string file_name) {
 
 // Çàïèñü ñòðîêè â ôàéë (áèíàðíûé ðåæèì)
 bool writey(const std::string filename, const std::string content) {
-    // Îòêðûòèå ôàéëà â áèíàðíîì ðåæèìå
-    std::ofstream out_file(filename, std::ios::binary);
-    if (!out_file) {
-        std::cerr << "Îøèáêà: íå óäàëîñü ñîçäàòü ôàéë " << filename << std::endl;
+    if (content.empty()) {
+        std::cerr << "������: ������� �������� ������ ������" << std::endl;
         return false;
     }
 
-    // Çàïèñü ñîäåðæèìîãî
-    out_file.write(content.data(), content.size()); // data() ïîçâîëÿåò ðàáîòàòü ñ ñîäåðæèìûì ñòðîêè êàê ñ C-ñòðîêîé èëè áèíàðíûìè äàííûìè
+    // ��������� ����������� �������� ����� ��� ������������ ��������
+    std::ofstream test(filename);
+    if (!test) {
+        std::cerr << "������: ���������� ������� ���� " << filename << std::endl;
+        return false;
+    }
+    test.close();
+
+    // �������� ������
+    std::ofstream out_file(filename, std::ios::binary);
+    out_file.write(content.data(), content.size());
+
     if (!out_file) {
         std::cerr << "Îøèáêà çàïèñè â ôàéë " << filename << std::endl;
         return false;
     }
 
-    out_file.close();
-    std::cout << "Ôàéë óñïåøíî çàïèñàí: " << filename << std::endl;
+    std::cout << "���� ������� �������: " << filename << std::endl;
     return true;
 }
 
