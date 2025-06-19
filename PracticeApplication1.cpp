@@ -5,12 +5,45 @@
 #include <cctype>
 #include <fstream>
 
-// Эталонные частоты букв русского языка (в порядке алфавита)
+/*
+ * Таблица частот букв русского алфавита в порядке "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+ * Значения представляют вероятности встречаемости букв в русских текстах
+ * Сумма всех вероятностей должна быть приблизительно равна 1.0
+ */
 const std::vector<double> RUSSIAN_FREQUENCIES = {
-    0.0801, 590.01, 0.0454, 0.0170, 0.0017, 0.0298, 0.0004, 0.0094, 0.0174,
-    0.0745, 0.0121, 0.0349, 0.0440, 0.0321, 0.0670, 0.1097, 0.0281, 0.0473,
-    0.0547, 0.0626, 0.0262, 0.0026, 0.0097, 0.0048, 0.0144, 0.0073, 0.0036,
-    0.0004, 0.0190, 0.0032, 0.0064, 0.0020, 0.0201  // "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+    0.0801, // а
+    0.0159, // б
+    0.0454, // в
+    0.0170, // г
+    0.0017, // д
+    0.0298, // е
+    0.0004, // ё
+    0.0094, // ж
+    0.0174, // з
+    0.0745, // и
+    0.0121, // й
+    0.0349, // к
+    0.0440, // л
+    0.0321, // м
+    0.0670, // н
+    0.1097, // о
+    0.0281, // п
+    0.0473, // р
+    0.0547, // с
+    0.0626, // т
+    0.0262, // у
+    0.0026, // ф
+    0.0097, // х
+    0.0048, // ц
+    0.0144, // ч
+    0.0073, // ш
+    0.0036, // щ
+    0.0004, // ъ
+    0.0190, // ы
+    0.0032, // ь
+    0.0064, // э
+    0.0020, // ю
+    0.0201  // я
 };
 
 double calculate_ic(const std::string&);
@@ -179,151 +212,169 @@ std::string vigenere_cipher(const std::string& text, const std::string& key, boo
     return result;
  }
 
-// Функция для вычисления индекса совпадений
+/*
+ * Функция для вычисления индекса совпадений (Index of Coincidence)
+ * IC используется для определения вероятной длины ключа
+ *
+ * @param text - входная строка для анализа
+ * @return значение индекса совпадений (от 0.0 до 1.0)
+ */
 double calculate_ic(const std::string& text) {
+    // Если текст слишком короткий, возвращаем 0
     if (text.length() < 2) return 0.0;
 
     const std::string alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
-    std::vector<int> counts(alphabet.size(), 0);
-    int total_letters = 0;
+    std::vector<int> counts(alphabet.size(), 0); // Вектор для подсчета букв
+    int total_letters = 0; // Общее количество букв в тексте
 
-    // Считаем частоту каждого символа
+    // Подсчитываем количество каждой буквы в тексте
     for (char c : text) {
+        // Находим позицию буквы в алфавите
         size_t pos = alphabet.find(c);
         if (pos != std::string::npos) {
-            counts[pos]++;
-            total_letters++;
+            counts[pos]++;       // Увеличиваем счетчик для этой буквы
+            total_letters++;     // Увеличиваем общий счетчик букв
         }
     }
 
-    // Вычисляем IC по стандартной формуле
+    // Вычисляем индекс совпадений по формуле:
+    // IC = ?(n_i*(n_i-1)) / (N*(N-1))
+    // где n_i - количество i-ой буквы, N - общее количество букв
     double ic = 0.0;
     for (int count : counts) {
         ic += count * (count - 1);
     }
 
+    // Возвращаем нормализованное значение
     return ic / (total_letters * (total_letters - 1));
 }
 
-// Функция для взлома шифра Виженера
-std::string break_vigenere(const std::string& ciphertext)
-{
-    const std::string alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"; // Стандартный русский алфавит (33 буквы с ё)
-    const int max_key_length = 30; // Максимальная допустимая длина ключа (для оптимизации)
-    int best_key_length = 1; // Найденная длина ключа (по умолчанию 1)
-    double best_ic = 0.0; // Максимальное значение индекса совпадений
+/*
+ * Основная функция для взлома шифра Виженера
+ *
+ * @param ciphertext - зашифрованный текст
+ * @return найденный ключ (в нижнем регистре)
+ */
+std::string break_vigenere(const std::string& ciphertext) {
+    const std::string alphabet = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
+    const int max_key_length = 30; // Максимальная предполагаемая длина ключа
 
-    // Шаг 1: Определение длины ключа
+    /*****************************************************************
+     * Этап 1: Определение длины ключа с помощью метода Касиски
+     * Анализируем индекс совпадений для разных длин ключа
+     * Наиболее вероятная длина ключа даст наибольший средний IC
+     *****************************************************************/
+    int best_key_length = 1;    // Начальное предположение о длине ключа
+    double best_ic = 0.0;       // Лучшее значение IC
+
     // Перебираем возможные длины ключа от 1 до max_key_length
-    for (int key_len = 1; key_len <= max_key_length; key_len++)
-    {
-        double sum_ic = 0.0; // Сумма IC для всех подпоследовательностей
-        int sequences = 0; // Количество непустых подпоследовательностей
+    for (int key_len = 1; key_len <= max_key_length; key_len++) {
+        double sum_ic = 0.0;    // Сумма IC для всех подпоследовательностей
+        int valid_sequences = 0; // Количество валидных подпоследовательностей
 
         // Для каждой позиции в ключе
-        for (int i = 0; i < key_len; i++)
-        {
-            std::string sequence; // Подпоследовательность символов
+        for (int i = 0; i < key_len; i++) {
+            std::string sequence; // Последовательность символов для i-й позиции ключа
 
             // Собираем символы, зашифрованные одним символом ключа
-            for (int j = i; j < ciphertext.length(); j += key_len)
-            {
+            for (int j = i; j < ciphertext.length(); j += key_len) {
+                // Приводим символ к нижнему регистру
                 char c = std::tolower(static_cast<unsigned char>(ciphertext[j]));
-
-                // Пропускаем символы не из алфавита
-                if (alphabet.find(c) != std::string::npos) 
+                // Если символ есть в алфавите, добавляем его в последовательность
+                if (alphabet.find(c) != std::string::npos) {
                     sequence += c;
+                }
             }
 
             // Вычисляем IC только для последовательностей длиной > 1
-            if (sequence.length() > 1)
-            {
-                double seq_ic = calculate_ic(sequence);
-                sum_ic += seq_ic;
-                sequences++;
+            if (sequence.length() > 1) {
+                sum_ic += calculate_ic(sequence);
+                valid_sequences++;
             }
         }
 
-        // Если нашли подпоследовательности, вычисляем средний IC
-        if (sequences > 0)
-        {
-            double avg_ic = sum_ic / sequences;
+        // Если нашли валидные последовательности, вычисляем средний IC
+        if (valid_sequences > 0) {
+            double avg_ic = sum_ic / valid_sequences;
 
-            // Выбираем длину ключа с максимальным IC
-            if (avg_ic > best_ic)
-            {
+            // Выбираем длину ключа с максимальным средним IC
+            if (avg_ic > best_ic) {
                 best_ic = avg_ic;
                 best_key_length = key_len;
             }
         }
     }
 
-    // Шаг 2: Определение символов ключа
+    /*****************************************************************
+     * Этап 2: Восстановление ключа посимвольно с помощью частотного анализа
+     * Для каждой позиции ключа подбираем символ, дающий наиболее "естественное"
+     * распределение букв в расшифрованном тексте
+     *****************************************************************/
     std::string recovered_key; // Строка для восстановленного ключа
 
     // Для каждого символа в ключе
-    for (int i = 0; i < best_key_length; i++)
-    {
-        std::string sequence; // Подпоследовательность для i-го символа
+    for (int i = 0; i < best_key_length; i++) {
+        std::string sequence; // Последовательность для текущего символа ключа
 
-        // Собираем символы, зашифрованные текущим символом ключа
-        for (int j = i; j < ciphertext.length(); j += best_key_length)
-        {
+        // Собираем все символы, зашифрованные текущим символом ключа
+        for (int j = i; j < ciphertext.length(); j += best_key_length) {
             char c = std::tolower(static_cast<unsigned char>(ciphertext[j]));
-            if (alphabet.find(c) != std::string::npos)
+            if (alphabet.find(c) != std::string::npos) {
                 sequence += c;
+            }
         }
 
-        double best_chi_sq = 1e9; // Минимальное значение хи-квадрат
+        // Если не нашли ни одного символа для этой позиции ключа
+        if (sequence.empty()) {
+            recovered_key += 'а'; // Используем значение по умолчанию
+            continue;
+        }
+
+        double best_chi_sq = std::numeric_limits<double>::max(); // Минимальное хи-квадрат
         char best_char = 'а'; // Найденный символ ключа
 
-        // Перебираем все символы алфавита как кандидаты
-        for (char c : alphabet)
-        {
-            // Пробуем расшифровать последовательность с текущим символом ключа
-            std::string decrypted_seq;
-            for (char ch : sequence)
-            {
+        // Перебираем все возможные символы алфавита как кандидаты на символ ключа
+        for (char c : alphabet) {
+            std::string decrypted; // Расшифрованная последовательность
+
+            // Пробуем расшифровать последовательность текущим кандидатом
+            for (char ch : sequence) {
+                // Находим позиции символов в алфавите
                 size_t pos = alphabet.find(ch);
                 size_t key_pos = alphabet.find(c);
+                // Вычисляем позицию в исходном тексте: (pos - key_pos) mod alphabet.size()
                 size_t new_pos = (pos - key_pos + alphabet.size()) % alphabet.size();
-                decrypted_seq += alphabet[new_pos];
+                decrypted += alphabet[new_pos];
             }
 
-            // Вычисляем распределение частот
-            std::vector<int> freq_counts(alphabet.size(), 0); // Частоты символов
-            int total_chars = 0; // Общее количество символов
-
-            // Перебираем все символы алфавита как кандидаты
-            for (char ch : decrypted_seq) 
-            {
+            // Подсчитываем частоты символов в расшифрованном тексте
+            std::vector<int> counts(alphabet.size(), 0);
+            int total = 0; // Общее количество символов
+            for (char ch : decrypted) {
                 size_t pos = alphabet.find(ch);
-                if (pos != std::string::npos) 
-                {
-                    freq_counts[pos]++;
-                    total_chars++;
+                if (pos != std::string::npos) {
+                    counts[pos]++;
+                    total++;
                 }
             }
 
-            // Вычисляем хи-квадрат только, если есть символы
-            double chi_sq = 0.0; // Значение хи-квадрат для кандидата
-            if (total_chars > 0)
-            {
-                for (size_t j = 0; j < alphabet.size(); j++)
-                {
-                    // Ожидаемая частота = эталонная частота * общее количество
-                    double expected = RUSSIAN_FREQUENCIES[j] * total_chars;
-                    double observed = freq_counts[j];
-                    double diff = observed - expected;
-                    chi_sq += (diff * diff) / expected;
-                }
+            // Пропускаем, если не нашли ни одного символа
+            if (total == 0) continue;
 
-                // Выбираем символ с минимальным хи-квадрат
-                if (chi_sq < best_chi_sq)
-                {
-                    best_chi_sq = chi_sq;
-                    best_char = c;
+            // Вычисляем статистику хи-квадрат для сравнения с эталонными частотами
+            double chi_sq = 0.0;
+            for (size_t j = 0; j < alphabet.size(); j++) {
+                double expected = RUSSIAN_FREQUENCIES[j] * total; // Ожидаемое количество
+                double observed = counts[j];                      // Наблюдаемое количество
+                if (expected > 0) { // Избегаем деления на ноль
+                    chi_sq += (observed - expected) * (observed - expected) / expected;
                 }
+            }
+
+            // Выбираем символ с наименьшим хи-квадрат (наиболее близкое распределение)
+            if (chi_sq < best_chi_sq) {
+                best_chi_sq = chi_sq;
+                best_char = c;
             }
         }
 
@@ -331,6 +382,7 @@ std::string break_vigenere(const std::string& ciphertext)
         recovered_key += best_char;
     }
 
+    // Возвращаем восстановленный ключ
     return recovered_key;
 }
 
