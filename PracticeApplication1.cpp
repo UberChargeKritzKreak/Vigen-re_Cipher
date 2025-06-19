@@ -390,3 +390,17 @@ bool writey(const std::string filename, const std::string content) {
 
     return true;
 }
+
+void show_help() {
+    std::cout << "Программа для шифрования/расшифрования файлов\n\n";
+    std::cout << "Использование:\n";
+    std::cout << "  program.exe -sh input.txt -k key output.enc\n";
+    std::cout << "  program.exe -rsh input.enc -k key output.txt\n";
+    std::cout << "  program.exe -dsh input.enc output.txt\n";
+    std::cout << "  program.exe -h\n";
+    std::cout << "  program.exe help\n\n";
+    std::cout << "Режимы работы:\n";
+    std::cout << "  -sh    Шифрование\n";
+    std::cout << "  -rsh   Расшифрование\n";
+    std::cout << "  -dsh   Дешифрование (без ключа)\n";
+}
