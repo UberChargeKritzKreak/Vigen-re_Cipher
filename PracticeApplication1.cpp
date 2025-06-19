@@ -334,23 +334,34 @@ std::string break_vigenere(const std::string& ciphertext)
 }
 
 std::string ready(const std::string file_name) {
-    std::ifstream fin(file_name);
+    // Открываем файл в бинарном режиме для точного сохранения символов
+    std::ifstream fin(file_name, std::ios::binary);
 
     if (!fin.is_open()) {
-        std::cerr << "Ошибка: не удалось открыть файл '" << file_name << "'" << std::endl;
-        return ""; // Возвращаем пустую строку при ошибке
-    }
-
-    std::string str;
-    if (std::getline(fin, str)) { // Чтение первой строки с помощью std::getline
-        fin.close();
-        return str;
-    }
-    else {
-        fin.close();
-        std::cerr << "Ошибка: файл пуст или ошибка чтения" << std::endl;
+        std::cerr << "Ошибка: не удалось открыть файл '" << file_name << "'\n";
         return "";
     }
+
+    // Перемещаем указатель в конец файла
+    fin.seekg(0, std::ios::end);
+    // Проверяем размер файла
+    const auto size = fin.tellg();
+
+    if (size <= 0) { // Файл пуст или ошибка
+        fin.close();
+        return ""; // Возвращаем пустую строку
+    }
+
+    // Возвращаем указатель в начало
+    fin.seekg(0, std::ios::beg);
+
+    // Создаем строку нужного размера
+    std::string str(size, '\0');
+    // Читаем весь файл в строку
+    fin.read(&str[0], size);
+    fin.close();
+
+    return str;
 }
 
 bool writey(const std::string filename, const std::string content) {
